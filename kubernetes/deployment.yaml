@@ -14,7 +14,7 @@ spec:
         spec:
             containers:
                 -   name: task-processor
-                    image: registry/task-processor:latest
+                    image: localhost:32000/task-processor:latest
                     ports:
                         -   containerPort: 8080
                     resources:

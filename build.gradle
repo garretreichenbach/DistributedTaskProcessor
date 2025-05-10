@@ -69,12 +69,21 @@ jib {
 		image = 'eclipse-temurin:21-jre-alpine'
 	}
 	to {
-		image = 'task-processor'
+		image = 'thederpgamer/task-processor'
 		tags = ['latest', "${version}"]
+		auth {
+			username = findProperty('dockerUsername')
+			password = findProperty('dockerPassword')
+		}
 	}
 	container {
 		ports = ['8080']
-		jvmFlags = ['-Xms512m', '-Xmx2g']
+		jvmFlags = ['-Xms1g', '-Xmx4g']
 	}
 	container.mainClass = 'garretreichenbach.taskprocessor.TaskProcessorApplication'
+}
+
+jar {
+	version = ''
+	archiveClassifier.set('')
 }
