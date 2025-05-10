@@ -4,13 +4,11 @@ import garretreichenbach.taskprocessor.model.Task;
 import garretreichenbach.taskprocessor.model.TaskResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorInputStream;
-import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -19,7 +17,7 @@ public class ImageProcessor implements TaskProcessor {
 	@Override
 	public TaskResult process(Task task) {
 		Map<String, Object> parameters = task.getParameters();
-		Map<String, Object> outputs = new HashMap<>();
+		Map<String, Object> outputs;
 		String taskType = (String) parameters.get("task_type");
 		byte[] data = (byte[]) parameters.get("data");
 		int width = (int) parameters.get("width");
@@ -60,14 +58,38 @@ public class ImageProcessor implements TaskProcessor {
 	 * @param scale The scaling factor.
 	 */
 	public Map<String, Object> scaleImage(byte[] data, int width, int height, double scale) {
+		// Create an int array from the byte data
+		int[] pixels = new int[width * height];
+		for(int i = 0; i < width * height; i++) {
+			// Assuming RGB byte order, 3 bytes per pixel
+			int index = i * 3;
+			int r = data[index] & 0xFF;
+			int g = data[index + 1] & 0xFF;
+			int b = data[index + 2] & 0xFF;
+			pixels[i] = (r << 16) | (g << 8) | b;
+		}
+
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		image.getRaster().setDataElements(0, 0, width, height, data);
+		image.getRaster().setDataElements(0, 0, width, height, pixels);
+
 		int newWidth = (int) (width * scale);
 		int newHeight = (int) (height * scale);
 		BufferedImage scaledImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
 		scaledImage.getGraphics().drawImage(image, 0, 0, newWidth, newHeight, null);
+
+		// Convert back to byte array
+		int[] scaledPixels = new int[newWidth * newHeight];
+		scaledImage.getRaster().getDataElements(0, 0, newWidth, newHeight, scaledPixels);
+
 		byte[] scaledData = new byte[newWidth * newHeight * 3];
-		scaledImage.getRaster().getDataElements(0, 0, newWidth, newHeight, scaledData);
+		for(int i = 0; i < scaledPixels.length; i++) {
+			int pixel = scaledPixels[i];
+			int index = i * 3;
+			scaledData[index] = (byte) ((pixel >> 16) & 0xFF);
+			scaledData[index + 1] = (byte) ((pixel >> 8) & 0xFF);
+			scaledData[index + 2] = (byte) (pixel & 0xFF);
+		}
+
 		return Map.of("scaled_image", scaledData, "width", newWidth, "height", newHeight);
 	}
 

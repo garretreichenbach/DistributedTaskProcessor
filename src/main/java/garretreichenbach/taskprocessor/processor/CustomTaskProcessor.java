@@ -52,7 +52,8 @@ public class CustomTaskProcessor implements TaskProcessor {
 				} else if(output.containsKey("timeout")) {
 					return TaskResult.timeout(task.getId());
 				} else {
-					return TaskResult.success(task.getId(), output);
+					String resultTaskId = output.containsKey("task_id") && output.get("task_id") instanceof String ? (String) output.get("task_id") : task.getId();
+					return TaskResult.success(resultTaskId, output);
 				}
 			} else {
 				return TaskResult.error(task.getId(), new Exception("Script did not return a function"));

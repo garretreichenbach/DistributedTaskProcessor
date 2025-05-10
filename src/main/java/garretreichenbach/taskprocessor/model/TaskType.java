@@ -88,7 +88,7 @@ public enum TaskType {
 //	VIDEO_CONVERSION,
 
 	//Misc.
-	CUSTOM_TASK("custom", CustomTaskProcessor.class, Map.of("script", String.class), null);
+	CUSTOM_TASK("custom", CustomTaskProcessor.class, Map.of("script", String.class, "task_id", String.class), null);
 
 	private final String name;
 	private final Class<? extends TaskProcessor> processor;
